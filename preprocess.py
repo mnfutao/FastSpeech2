@@ -11,18 +11,22 @@ def write_metadata(train, out_dir):
 
 
 def main():
-    in_dir = hp.raw_path
-    out_dir = hp.preprocessed_path
-    mel_out_dir = os.path.join(out_dir, "mel")
+    in_dir = hp.raw_path # ./raw_data/M2VoC
+    out_dir = hp.preprocessed_path  # ./preprocessed_data/M2VoC
+
+    wav_out_dir = os.path.join(out_dir, "wav")  # ./preprocessed_data/M2VoC/mel
+    if not os.path.exists(wav_out_dir):
+        os.makedirs(wav_out_dir, exist_ok=True)
+    mel_out_dir = os.path.join(out_dir, "mel")  # ./preprocessed_data/M2VoC/mel
     if not os.path.exists(mel_out_dir):
         os.makedirs(mel_out_dir, exist_ok=True)
-    ali_out_dir = os.path.join(out_dir, "alignment")
+    ali_out_dir = os.path.join(out_dir, "alignment")    # ./preprocessed_data/M2VoC/alignment
     if not os.path.exists(ali_out_dir):
-        os.makedirs(ali_out_dir, exist_ok=True)
-    f0_out_dir = os.path.join(out_dir, "f0")
+        os.makedirs(ali_out_dir, exist_ok=True) # ./preprocessed_data/M2VoC/f0
+    f0_out_dir = os.path.join(out_dir, "f0")    
     if not os.path.exists(f0_out_dir):
         os.makedirs(f0_out_dir, exist_ok=True)
-    energy_out_dir = os.path.join(out_dir, "energy")
+    energy_out_dir = os.path.join(out_dir, "energy") # ./preprocessed_data/M2VoC/energy
     if not os.path.exists(energy_out_dir):
         os.makedirs(energy_out_dir, exist_ok=True)
 

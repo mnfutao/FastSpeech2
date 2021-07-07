@@ -9,12 +9,16 @@ import numpy as np
 import pyworld as pw
 from scipy.interpolate import interp1d
 from sklearn.preprocessing import StandardScaler
-
+import sys
+sys.path.append('../')
 import audio as Audio
 import hparams as hp
 
+from tqdm import tqdm
+import soundfile as sf
 
-def build_from_path(in_dir, out_dir):
+
+def build_from_path(in_dir, out_dir): # ./raw_data/M2VoC   ./preprocessed_data/M2VoC
     print("Processing Data ...")
     index = 1
     out = list()
@@ -25,7 +29,8 @@ def build_from_path(in_dir, out_dir):
     speakers = {}
     for i, speaker in enumerate(os.listdir(in_dir)):
         speakers[speaker] = i
-        for wav_name in os.listdir(os.path.join(in_dir, speaker)):
+        print(f'【{speaker}】')
+        for wav_name in tqdm(os.listdir(os.path.join(in_dir, speaker))):
             if ".wav" not in wav_name:
                 continue
 
@@ -41,8 +46,8 @@ def build_from_path(in_dir, out_dir):
                     info, f0, energy, f_max, f_min, e_max, e_min, n = ret
                 out.append(info)
 
-            if index % 100 == 0:
-                print("Done %d" % index)
+            # if index % 100 == 0:
+            #     print("Done %d" % index)
             index = index + 1
 
             if len(f0) > 0 and len(energy) > 0:
@@ -100,7 +105,7 @@ def process_utterance(in_dir, out_dir, speaker, basename):
         return None
 
     # Read and trim wav files
-    wav, _ = librosa.load(wav_path)
+    wav, _ = sf.read(wav_path)
     wav = wav[int(hp.sampling_rate * start) : int(hp.sampling_rate * end)].astype(
         np.float32
     )
@@ -128,6 +133,8 @@ def process_utterance(in_dir, out_dir, speaker, basename):
     f0 = interp_fn(np.arange(0, len(f0)))
 
     # Compute mel-scale spectrogram and energy
+       
+
     mel_spectrogram, energy = Audio.tools.get_mel_from_wav(wav)
     mel_spectrogram = mel_spectrogram.numpy().astype(np.float32)[:, : sum(duration)]
     energy = energy.numpy().astype(np.float32)[: sum(duration)]
@@ -142,6 +149,11 @@ def process_utterance(in_dir, out_dir, speaker, basename):
         pos += d
     f0 = f0[: len(duration)]
     energy = energy[: len(duration)]
+
+    # Save wav
+    wav_filename = "{}-wav-{}.wav".format(hp.dataset, basename)
+    sf.write(os.path.join(out_dir, "wav", wav_filename), wav, hp.sampling_rate)
+    
 
     # Save alignment
     ali_filename = "{}-ali-{}.npy".format(hp.dataset, basename)
@@ -166,6 +178,7 @@ def process_utterance(in_dir, out_dir, speaker, basename):
         mel_spectrogram.T,
         allow_pickle=False,
     )
+    # exit()
 
     return (
         "|".join([basename, speaker, text]),
@@ -180,7 +193,7 @@ def process_utterance(in_dir, out_dir, speaker, basename):
 
 
 def get_alignment(tier):
-    sil_phones = ["sil", "sp", "spn"]
+    sil_phones = ["sil", "sp", "spn", '']
 
     phones = []
     durations = []
@@ -189,8 +202,16 @@ def get_alignment(tier):
     start_time = 0
     end_time = 0
     end_idx = 0
+
+    pre_phone = ''
+    cur_phone = ''
     for t in tier._objects:
         s, e, p = t.start_time, t.end_time, t.text
+
+        p_dur_time = int(
+                np.round(e * hp.sampling_rate / hp.hop_length)
+                - np.round(s * hp.sampling_rate / hp.hop_length)
+            )
 
         # Trimming leading silences
         if phones == []:
@@ -198,18 +219,31 @@ def get_alignment(tier):
                 continue
             else:
                 start_time = s
+
         if p not in sil_phones:
+            if phones and phones[-1] == sil_phones:
+                if durations[-1]  > 15:
+                    phones[-1] = ','
+                else: 
+                    phones.pop()
+                    p_dur_time += durations.pop()
             phones.append(p)
+            
             end_time = e
             end_idx = len(phones)
         else:
+            if phones and phones[-1] in sil_phones:
+                phones.pop()
+                p_dur_time += durations.pop()
+                p = ',' if p == 'sp' else '.'
+            
+
+
             phones.append(p)
-        durations.append(
-            int(
-                np.round(e * hp.sampling_rate / hp.hop_length)
-                - np.round(s * hp.sampling_rate / hp.hop_length)
-            )
-        )
+
+        durations.append(p_dur_time)
+
+
 
     # Trimming tailing silences
     phones = phones[:end_idx]
@@ -239,3 +273,7 @@ def normalize(in_dir, mean, std):
         min_value = min(min_value, min(values))
 
     return min_value, max_value
+
+
+if __name__ == "__main__":
+    print('OK')

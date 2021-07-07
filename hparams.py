@@ -11,12 +11,12 @@ language = "zh"
 
 
 # Some paths
-raw_path = os.path.join("./raw_data/", dataset)
-preprocessed_path = os.path.join("./preprocessed_data/", dataset)
-checkpoint_path = os.path.join("./ckpt/", dataset)
-synth_path = os.path.join("./synth/", dataset)
-log_path = os.path.join("./log/", dataset)
-test_path = os.path.join("./results/", dataset)
+raw_path = os.path.join("./raw_data/", dataset) # ./raw_data/M2VoC
+preprocessed_path = os.path.join("./preprocessed_data/", dataset) # ./preprocessed_data/M2VoC
+checkpoint_path = os.path.join("./ckpt/", dataset) # ./ckpt/M2VoC
+synth_path = os.path.join("./synth/", dataset)  # ./synth/M2VoC
+log_path = os.path.join("./log/", dataset)  # ./log/M2VoC
+test_path = os.path.join("./results/", dataset) # ./results/M2VoC
 
 
 # Audio and mel
@@ -29,7 +29,7 @@ preemph = 0.0
 max_wav_value = 32768.0
 n_mel_channels = 80
 mel_fmin = 0.0
-mel_fmax = None
+mel_fmax = 8000
 
 
 # FastSpeech 2
@@ -49,6 +49,17 @@ variance_predictor_kernel_size = 3
 variance_predictor_dropout = 0.5
 
 max_seq_len = 1000
+
+
+# Total time: 10.659987704711513 hours
+# Total frames: 3305429
+# Mean F0: 154.20840943324532
+# Stdev F0: 53.32477371471481
+# Min F0: -1.7512745788509616
+# Max F0: 11.315468088499639
+# Min energy: -1.4093565940856934
+# Max energy: 7.458939552307129
+
 
 
 # Quantization for F0 and energy
@@ -87,7 +98,6 @@ save_step = 50000
 synth_step = 1000
 log_step = 1000
 clear_Time = 20
-
 
 # Pretrained speaker representations
 d_vec_size = 128

@@ -14,33 +14,42 @@ _id_to_symbol = {i: s for i, s in enumerate(symbols)}
 _curly_re = re.compile(r"(.*?)\{(.+?)\}(.*)")
 
 
-def text_to_sequence(text):
-    """Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
+def text_to_sequence(text, own_signal = False):
 
-    The text can optionally have ARPAbet sequences enclosed in curly braces embedded
-    in it. For example, "Turn left on {HH AW1 S S T AH0 N} Street."
+    if not own_signal:
+        """Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
 
-    Args:
-      text: string to convert to a sequence
-      cleaner_names: names of the cleaner functions to run the text through
+        The text can optionally have ARPAbet sequences enclosed in curly braces embedded
+        in it. For example, "Turn left on {HH AW1 S S T AH0 N} Street."
 
-    Returns:
-      List of integers corresponding to the symbols in the text
-    """
-    sequence = []
+        Args:
+        text: string to convert to a sequence
+        cleaner_names: names of the cleaner functions to run the text through
 
-    # Check for curly braces and treat their contents as ARPAbet:
-    while len(text):
-        m = _curly_re.match(text)
+        Returns:
+        List of integers corresponding to the symbols in the text
+        """
+        sequence = []
 
-        if not m:
-            sequence += _symbols_to_sequence(_clean_text(text, hp.text_cleaners))
-            break
-        sequence += _symbols_to_sequence(_clean_text(m.group(1), hp.text_cleaners))
-        sequence += _arpabet_to_sequence(m.group(2))
-        text = m.group(3)
+        # Check for curly braces and treat their contents as ARPAbet:
+        while len(text):
+            m = _curly_re.match(text)
 
-    return sequence
+            if not m:
+                sequence += _symbols_to_sequence(_clean_text(text, hp.text_cleaners))
+                break
+            sequence += _symbols_to_sequence(_clean_text(m.group(1), hp.text_cleaners))
+            sequence += _arpabet_to_sequence(m.group(2))
+            text = m.group(3)
+
+        return sequence
+    else:
+        text = text[1:-1].split(' ')
+        text = [ '@' + x for x in text]
+        return _symbols_to_sequence(text)
+        
+
+
 
 
 def sequence_to_text(sequence):

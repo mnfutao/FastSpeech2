@@ -11,7 +11,7 @@ from transformer.Layers import PostNet
 from utils import get_mask_from_lengths
 from .modules import VarianceAdaptor, ReferenceEncoder, StyleAttention
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class FastSpeech2(nn.Module):
@@ -125,10 +125,11 @@ class FastSpeech2(nn.Module):
         use_gst=False,
         gst=None,
     ):
+        device = d_target.device
         start_time = time.perf_counter()
-        src_mask = get_mask_from_lengths(src_len, max_src_len)
+        src_mask = get_mask_from_lengths(src_len, device, max_src_len)
         mel_mask = (
-            get_mask_from_lengths(mel_len, max_mel_len) if mel_len is not None else None
+            get_mask_from_lengths(mel_len, device, max_mel_len) if mel_len is not None else None
         )
 
         encoder_output = self.encoder(src_seq, src_mask)

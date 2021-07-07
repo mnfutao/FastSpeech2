@@ -1,6 +1,7 @@
 import argparse
 import os
 import time
+from tqdm import tqdm
 
 import torch
 import torch.nn as nn
@@ -17,15 +18,21 @@ from model.loss import FastSpeech2Loss
 from model.optimizer import ScheduledOptim
 from plot.utils import plot_mel
 
+os.environ['CUDA_VISIBLE_DEVICES']  = '7'
 
 def main(args):
     torch.manual_seed(0)
+
+    if torch.cuda.is_available():
+        print(f'Training Model On: GPU')
+    else:
+        print(f'Training Model On: CPU')
 
     # Get device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Get dataset
-    dataset = Dataset("train.txt")
+    dataset = Dataset(filename="train.txt", x_vec_signal=args.x_vec, d_vec_signal=args.d_vec, adain_vec_signal=args.adain)
     loader = DataLoader(
         dataset,
         batch_size=hp.batch_size ** 2,
@@ -74,7 +81,7 @@ def main(args):
             os.makedirs(checkpoint_path)
 
     # Load vocoder
-    vocoder = utils.get_vocoder()
+    vocoder = utils.get_vocoder(device)
 
     # Init logger
     log_path = hp.log_path
@@ -107,7 +114,7 @@ def main(args):
                     + epoch * len(loader) * hp.batch_size
                     + 1
                 )
-
+                #print(f'\ncurrent_step:{current_step} hp.log_step:{hp.log_step}')
                 # Get Data
                 id_ = data_of_batch["id"]
                 speaker = torch.from_numpy(data_of_batch["speaker"]).long().to(device)
@@ -123,9 +130,16 @@ def main(args):
                 mel_len = torch.from_numpy(data_of_batch["mel_len"]).long().to(device)
                 max_src_len = np.max(data_of_batch["src_len"]).astype(np.int32)
                 max_mel_len = np.max(data_of_batch["mel_len"]).astype(np.int32)
-                d_vec = torch.from_numpy(data_of_batch["d_vec"]).float().to(device)
-                x_vec = torch.from_numpy(data_of_batch["x_vec"]).float().to(device)
-                adain = torch.from_numpy(data_of_batch["adain"]).float().to(device)
+
+                d_vec = None
+                if args.d_vec:
+                    d_vec = torch.from_numpy(data_of_batch["d_vec"]).float().to(device) if args.d_vec else None
+                x_vec = None
+                if args.x_vec:
+                    x_vec = torch.from_numpy(data_of_batch["x_vec"]).float().to(device) if args.x_vec else None
+                adain = None
+                if args.adain:
+                    adain = torch.from_numpy(data_of_batch["adain"]).float().to(device) if args.adain else None
 
                 # Forward
                 (
@@ -148,9 +162,9 @@ def main(args):
                     mel_target,
                     max_src_len,
                     max_mel_len,
-                    d_vec=d_vec if args.d_vec else None,
-                    x_vec=x_vec if args.x_vec else None,
-                    adain=adain if args.adain else None,
+                    d_vec=d_vec,
+                    x_vec=x_vec,
+                    adain=adain,
                     speaker=speaker if args.speaker_emb else None,
                     use_gst=args.gst,
                 )

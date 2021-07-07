@@ -16,7 +16,7 @@ from text import text_to_sequence
 from model.fastspeech2 import FastSpeech2
 from plot.utils import plot_mel
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def read_source(source_path):
@@ -71,6 +71,7 @@ def synthesize(
     file_ids,
     prefix="",
 ):
+    device = model.device
     src_len = torch.from_numpy(np.array([len(t) for t in texts])).to(device)
     texts = torch.from_numpy(utils.pad_1D(texts)).to(device)
     d_vec = (
@@ -179,12 +180,12 @@ if __name__ == "__main__":
         "--speaker",
         type=str,
         choices=[
-            "TST_T1_S3",
-            "TST_T1_S4",
-            "TST_T1_S5",
-            "TST_T2_S3",
-            "TST_T2_S4",
-            "TST_T2_S5",
+            "tutor_lq",
+            "tutor_lfq",
+            "tutor_ldd",
+            "tutor_dy",
+            "snowball_v2",
+            "yaya",
         ],
     )
     parser.add_argument("--source", type=str)
@@ -199,12 +200,12 @@ if __name__ == "__main__":
     file_ids, texts = read_source(args.source)
 
     speaker_to_track = {
-        "TST_T1_S3": "Track1_b",
-        "TST_T1_S4": "Track1_b",
-        "TST_T1_S5": "Track1_b",
-        "TST_T2_S3": "Track2_b",
-        "TST_T2_S4": "Track2_b",
-        "TST_T2_S5": "Track2_b",
+        "tutor_lq": "tutor",
+        "tutor_ldd": "tutor",
+        "tutor_lfq": "tutor",
+        "tutor_dy": "tutor",
+        "snowball_v2": "snowball",
+        "yaya": "yaya",
     }
     speaker_to_id = utils.get_speaker_to_id()
 

@@ -9,7 +9,7 @@ from scipy.io import wavfile
 
 import hparams as hp
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def get_param_num(model):
@@ -17,7 +17,7 @@ def get_param_num(model):
     return num_param
 
 
-def get_mask_from_lengths(lengths, max_len=None):
+def get_mask_from_lengths(lengths, device, max_len=None):
     if max_len is None:
         max_len = torch.max(lengths).item()
     batch_size = lengths.shape[0]
@@ -42,13 +42,13 @@ def vocoder_infer(mels, vocoder, paths, lengths=None):
             wavfile.write(path, hp.sampling_rate, wav)
 
 
-def get_vocoder():
+def get_vocoder(device):
     vocoder = torch.hub.load(
-        "descriptinc/melgan-neurips", "load_melgan", "multi_speaker"
+        "descriptinc/melgan-neurips", "load_melgan", "multi_speaker", device
     )
     vocoder.mel2wav.eval()
     vocoder.mel2wav.to(device)
-
+    
     return vocoder
 
 
@@ -121,6 +121,7 @@ def get_pretrained_embedding(speaker, folder):
 
 
 def get_gst(mels, model):
+    device = mels.device
     ret = []
     for mel in mels:
         mel = torch.from_numpy(np.array([mel])).float().to(device)

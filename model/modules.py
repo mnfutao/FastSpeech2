@@ -11,7 +11,7 @@ import utils
 import hparams as hp
 from transformer.SubLayers import MultiHeadAttention
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def clones(module, N):
@@ -98,7 +98,7 @@ class VarianceAdaptor(nn.Module):
                 min=0,
             )
             x, mel_len = self.length_regulator(x, duration_rounded, max_len)
-            mel_mask = utils.get_mask_from_lengths(mel_len)
+            mel_mask = utils.get_mask_from_lengths(mel_len, x.device)
 
         return (
             x,
@@ -136,6 +136,7 @@ class LengthRegulator(nn.Module):
     #         pos += l
 
     def LR(self, x, duration, max_len):
+        device = x.device 
         output = list()
         mel_len = list()
         for batch, expand_target in zip(x, duration):
