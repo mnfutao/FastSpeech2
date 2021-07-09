@@ -194,6 +194,7 @@ def process_utterance(in_dir, out_dir, speaker, basename):
 
 def get_alignment(tier):
     sil_phones = ["sil", "sp", "spn", '']
+    punctuation_phones = [ ',', '.']
 
     phones = []
     durations = []
@@ -221,28 +222,42 @@ def get_alignment(tier):
                 start_time = s
 
         if p not in sil_phones:
-            if phones and phones[-1] == sil_phones:
+            # 当前phone非sil_phone, 判断前一个phone是不是sil_phone的情况
+            if phones and phones[-1] in sil_phones:  
+                # 若前一phone为sil_phoen, 且市场大于15帧， 那么将前一个phone转为，
                 if durations[-1]  > 15:
                     phones[-1] = ','
+                # 若前一phone为sil_phoen, 且市场小于15帧， 那么需要将前一个sil的时间与前前一个phone进行合并
                 else: 
                     phones.pop()
-                    p_dur_time += durations.pop()
+                    pre_sil_phone_time = durations.pop()
+                    durations[-1] += pre_sil_phone_time
+
             phones.append(p)
             
-            end_time = e
-            end_idx = len(phones)
+            
+        # 当前phone为sil_phone, 判断前一个phone是不是sil_phone的情况
         else:
+            # 若前一phone为sil_phone
             if phones and phones[-1] in sil_phones:
+                # 那么需要将两个连续出现的sil_phone合并为一个标点
                 phones.pop()
                 p_dur_time += durations.pop()
                 p = ',' if p == 'sp' else '.'
-            
+            # 若前一phone为punctuation_phone
+            elif phones and phones[-1] in punctuation_phones:
+                # 那么需要将当前的sil_phone和之前的标点符号合并
+                p = phones.pop()
+                p_dur_time += durations.pop()
+            else:
+                pass
 
 
             phones.append(p)
 
         durations.append(p_dur_time)
-
+        end_time = e
+        end_idx = len(phones)
 
 
     # Trimming tailing silences

@@ -125,7 +125,7 @@ class FastSpeech2(nn.Module):
         use_gst=False,
         gst=None,
     ):
-        device = d_target.device
+        device = src_seq.device
         start_time = time.perf_counter()
         src_mask = get_mask_from_lengths(src_len, device, max_src_len)
         mel_mask = (

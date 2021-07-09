@@ -51,26 +51,25 @@ variance_predictor_dropout = 0.5
 max_seq_len = 1000
 
 
-# Total time: 10.659987704711513 hours
-# Total frames: 3305429
-# Mean F0: 154.20840943324532
-# Stdev F0: 53.32477371471481
-# Min F0: -1.7512745788509616
-# Max F0: 11.315468088499639
-# Min energy: -1.4093565940856934
-# Max energy: 7.458939552307129
-
+#total time: 79.87095832703453 hours
+#Total frames: 24766237
+#Mean F0: 241.91543808941768
+#Stdev F0: 89.42275421804817
+#Min F0: -2.025137235699036
+#Max F0: 6.49714096696279
+#Min energy: -1.4232845306396484
+#Max energy: 8.448925018310547
 
 
 # Quantization for F0 and energy
-f0_min = -3.758
-f0_max = 10.071
-energy_min = -1.684
-energy_max = 6.827
+f0_min = -2.025137235699036
+f0_max = 6.49714096696279
+energy_min = -1.4232845306396484
+energy_max = 8.448925018310547
 
 # For plotting F0 curves
-f0_mean = 207.646
-f0_std = 56.274
+f0_mean = 241.91543808941768
+f0_std = 89.42275421804817
 
 n_bins = 256
 
