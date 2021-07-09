@@ -208,7 +208,9 @@ if __name__ == "__main__":
             "tutor_dy",
             "snowball_v2",
             "yaya",
-            "biaobei"
+            "biaobei",
+            "snowball_newer",
+            "speechocean_man10h"
         ],
     )
     parser.add_argument("--source", type=str)
@@ -230,11 +232,13 @@ if __name__ == "__main__":
         "tutor_dy": "tutor",
         "snowball_v2": "snowball",
         "yaya": "yaya",
-        "biaobei": "biaobei"
+        "biaobei": "biaobei",
+        "snowball_newer": "snowball_newer",
+        "speechocean_man10h": "speechocean_man10h"
     }
     speaker_to_id = utils.get_speaker_to_id()
 
-    prefix = "{}_{}".format(speaker_to_track[args.speaker], '_')
+    prefix = "{}_{}".format(speaker_to_track[args.speaker], '')
 
     # Get averaged speaker embedding
     mel_path = os.path.join(hp.preprocessed_path, "mel")
