@@ -47,7 +47,7 @@ def get_vocoder(device):
         "descriptinc/melgan-neurips", "load_melgan", "multi_speaker", device
     )
     vocoder.mel2wav.eval()
-    vocoder.mel2wav.to(device)
+    # vocoder.mel2wav.to(device)
     
     return vocoder
 

@@ -16,22 +16,43 @@ from text import text_to_sequence
 from model.fastspeech2 import FastSpeech2
 from plot.utils import plot_mel
 
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
 
-def read_source(source_path):
+
+def read_source(source_path, own_signal = False):
+
     ids = []
-    sequences = []
     sentences = []
-    lexicon = read_lexicon("text/pinyin-lexicon-r.txt")
-    with open(source_path, "r") as f:
-        for line in f:
-            id_, sequence, sentence = line.strip("\n").split("|")
-            ids.append(id_)
+    sequences = []
+    if not own_signal:
+        lexicon = read_lexicon("text/pinyin-lexicon-r.txt")
+        with open(source_path, "r") as f:
+            for line in f:
+                id_, sequence, sentence = line.strip("\n").split("|")
+                ids.append(id_)
 
-            sequences.append(np.array(text_to_sequence(sequence)))
-            sentences.append(sentence)
-    return ids, sequences
+                sequences.append(np.array(text_to_sequence(sequence)))
+                sentences.append(sentence)
+        return ids, sequences
+    else:
+        with open(source_path, "r") as f:
+            for line in f:
+                id_, ori_speaker, sentence = line.strip("\n").split("|")
+                ids.append(id_)
+
+                sequences.append(np.array(text_to_sequence(sentence, own_signal)))
+                # print(id_)
+                # print(sentence)
+                # print(text_to_sequence(sentence, own_signal))
+                # print()
+                # sentences.append(sentence)
+        # print()
+        return ids, sequences
+
+
+
+# speechocean_man10h-303179|speechocean_man10h|{Q ING_3 AN_4 ZH AO_4 ZH E_4 G E_4 CH U_4 F ANG_1 G EI_3 UO_3 P EI_4 IAO_4}
 
 
 def read_lexicon(lex_path):
@@ -60,6 +81,7 @@ def get_FastSpeech2(step):
 
 
 def synthesize(
+    device,
     model,
     vocoder,
     d_vec,
@@ -71,9 +93,9 @@ def synthesize(
     file_ids,
     prefix="",
 ):
-    device = model.device
     src_len = torch.from_numpy(np.array([len(t) for t in texts])).to(device)
-    texts = torch.from_numpy(utils.pad_1D(texts)).to(device)
+    # print(texts)
+    texts = torch.LongTensor(torch.from_numpy(utils.pad_1D(texts))).to(device)
     d_vec = (
         torch.from_numpy(np.array(d_vec))
         .to(device)
@@ -99,7 +121,7 @@ def synthesize(
         else None
     )
     speakers = (
-        torch.from_numpy(np.array([speaker])).to(device).expand(len(file_ids))
+        torch.LongTensor(torch.from_numpy(np.array([speaker]))).to(device).expand(len(file_ids))
         if speaker is not None
         else None
     )
@@ -186,6 +208,7 @@ if __name__ == "__main__":
             "tutor_dy",
             "snowball_v2",
             "yaya",
+            "biaobei"
         ],
     )
     parser.add_argument("--source", type=str)
@@ -197,8 +220,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    file_ids, texts = read_source(args.source)
-
+    file_ids, texts = read_source(args.source, True)
+    # print(texts)
+    # exit()
     speaker_to_track = {
         "tutor_lq": "tutor",
         "tutor_ldd": "tutor",
@@ -206,10 +230,11 @@ if __name__ == "__main__":
         "tutor_dy": "tutor",
         "snowball_v2": "snowball",
         "yaya": "yaya",
+        "biaobei": "biaobei"
     }
     speaker_to_id = utils.get_speaker_to_id()
 
-    prefix = "{}_{}".format(speaker_to_track[args.speaker], args.speaker[-2:])
+    prefix = "{}_{}".format(speaker_to_track[args.speaker], '_')
 
     # Get averaged speaker embedding
     mel_path = os.path.join(hp.preprocessed_path, "mel")
@@ -235,8 +260,10 @@ if __name__ == "__main__":
         else None
     )
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     model = get_FastSpeech2(args.step).to(device)
-    vocoder = utils.get_vocoder()
+    vocoder = utils.get_vocoder(device)
 
     speaker = speaker_to_id[args.speaker] if args.speaker_emb else None
     gst = np.mean(utils.get_gst(reference_mels, model), 0) if args.gst else None
@@ -244,6 +271,7 @@ if __name__ == "__main__":
     with torch.no_grad():
         for i in range(0, len(file_ids), hp.batch_size):
             synthesize(
+                device,
                 model,
                 vocoder,
                 d_vec,

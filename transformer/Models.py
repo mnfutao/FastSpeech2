@@ -76,6 +76,7 @@ class Encoder(nn.Module):
         slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
 
         # -- Forward
+        
         if not self.training and src_seq.shape[1] > hp.max_seq_len:
             enc_output = self.src_word_emb(src_seq) + get_sinusoid_encoding_table(
                 src_seq.shape[1], hp.encoder_hidden

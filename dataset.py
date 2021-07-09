@@ -203,7 +203,6 @@ class Dataset(Dataset):
 
         return output
 
-'''
 if __name__ == "__main__":
     # Test
     dataset = Dataset(filename="train.txt", x_vec_signal=True)
@@ -233,4 +232,3 @@ if __name__ == "__main__":
 
 
     print(cnt, len(dataset))
-'''
