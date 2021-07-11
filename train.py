@@ -18,7 +18,7 @@ from model.loss import FastSpeech2Loss
 from model.optimizer import ScheduledOptim
 from plot.utils import plot_mel
 
-os.environ['CUDA_VISIBLE_DEVICES']  = '7'
+os.environ['CUDA_VISIBLE_DEVICES']  = '5'
 
 def main(args):
     torch.manual_seed(0)
